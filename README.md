@@ -1,1 +1,0 @@
-# Database-Bash-scripting
