@@ -1,3 +1,5 @@
+# Hello Sherif
+
 #!/bin/bash
 shopt -s extglob
 
