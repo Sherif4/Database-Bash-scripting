@@ -7,10 +7,108 @@ tableHandling(){
   do
   case $choice in
     "Insert")
-      cat .metadata_$1 | cut -d: -f1
+      colCount=$(cat .metadata_$1 | wc -l)
+      echo $colCount
+      line=""
+      for ((i=0;i<$colCount;i++))
+      do
+        Col=$(cat .metadata_$1 | AWK -F: "NR==(($i+1)){print \$1}")
+        type=$(cat .metadata_$1 | AWK -F: "NR==(($i+1)){print \$2}")
+        pk=$(cat .metadata_$1 | AWK -F: "NR==(($i+1)){print \$3}")
+        while true; do
+        read -p "Please enter $Col: " data
+        case $type in
+          "Int")
+            if [[ $data =~ ^[0-9]+$ ]]
+            then
+              if [ $pk -eq 1 ]
+              then
+                if [ "$(cat $1 | AWK -F: "/$data/{print \$(($i+1))}" | wc -l)" -eq 0 ]
+                then
+                   line+=:$data
+                   break
+                else
+                  echo "This is primary key column, your entry is duplicate"
+                fi
+              else
+                line+=:$data  
+                  break          
+              fi             
+            else
+              echo "This column accept numbers only"              
+            fi
+            
+          ;;
+          "Str")
+            if [[ $data =~ ^[a-zA-Z]+$ ]]
+            then
+              if [ $pk -eq 1 ]
+              then
+                if [ "$(cat $1 | AWK -v IGNORECASE=1 -F: "/$data/{print \$(($i+1))}" | wc -l)" -eq 0 ]
+                then
+                   line+=:$data
+                   break
+                else
+                  echo "This is primary key column, your entry is duplicate"
+                fi
+              else
+                line+=:$data  
+                  break          
+              fi      
+            else
+              echo "This column accept letters only"            
+            fi
+            
+          ;;
+        esac
+        done
+      done
+        echo ${line:1} >> $1
+        echo "Record has been inserted successfully"
     ;;
     "Update")
-
+      cols=$(cat .metadata_$1 | awk -F: '{if ($3==0){print $1}}')
+      table=$(cat $1 | awk -F: '{print}')
+      select row in $table
+      do
+        Rownum=$REPLY
+        select column in $cols
+        do
+          colname=$(cat .metadata_$1 | AWK -F: '{if ($3==0){print $1}}' | AWK "NR==$REPLY")
+          coltype=$(cat .metadata_$1 | AWK -F: '{if ($3==0){print $2}}' | AWK "NR==$REPLY")
+          echo $coltype
+          fieldnum=$(cat .metadata_$1 | AWK -F: "/$colname/{print NR}")
+          old=$(awk -F: "NR==$Rownum {print \$$fieldnum}" $1)
+          echo $old
+          while true; do
+            read -p "Enter the new value: " nvalue
+            case $coltype in
+              "Int")
+                if [[ $nvalue =~ ^[0-9]+$ ]]
+                then
+                  awk -F: -v rownum="$Rownum" -v old="$old" -v nvalue="$nvalue" -v fieldnum="$fieldnum" 'BEGIN { OFS=FS } NR==rownum {gsub(old, nvalue, $fieldnum)} {print}' "$1" > temp && mv temp "$1"
+                  rm -f temp
+                  echo "Value has been updated successfully!"
+                  break
+                else
+                  echo "This column accept numbers only"              
+                fi
+                ;;
+              "Str")
+                if [[ $nvalue =~ ^[a-zA-Z]+$ ]]
+                then
+                  awk -F: -v rownum="$Rownum" -v old="$old" -v nvalue="$nvalue" -v fieldnum="$fieldnum" 'BEGIN { OFS=FS } NR==rownum {gsub(old, nvalue, $fieldnum)} {print}' "$1" > temp && mv temp "$1"
+                  rm -f temp
+                  echo "Value has been updated successfully!"
+                  break
+                else
+                  echo "This column accept letters only"            
+                fi
+                ;;
+              esac
+          done
+        done
+      done
     ;;
     "Delete")
 
