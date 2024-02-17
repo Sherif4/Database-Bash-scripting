@@ -3,7 +3,7 @@ shopt -s extglob
 
 tableHandling(){
   clear
-  select choice in Insert Update Delete "Drop Table"
+  select choice in Show Insert Update Delete "Drop Table"
   do
   case $choice in
     "Insert")
@@ -110,16 +110,45 @@ tableHandling(){
         done
       done
     ;;
-    "Delete")
+     "Show")
+      if [ -e "$1" ] && [ -e ".metadata_$1" ]
+      then
+      # Extract column names from metadata
+      column_names=$(cat .metadata_ha | awk -F: '{printf $1 " "}' && echo)
 
-    ;;
-    "Drop Table")
+      # Display column names on the same line
+      echo -n "$column_names" && echo
 
-    ;;
-  esac
-  done
+      # Display data with corresponding column names
+      sed 's/:/ /g' "$1" && echo
+      else
+        echo "Table does not exist."
+      fi
+      ;;
+        "Delete")
+        read -p "Enter Row_ID to Delete: " rowID
+        if [ -e "$1" ]&&[ -e ".metadata_$1" ]
+        then
+          sed -i "${rowID}d" "$1"
+          echo "Record $rowID Deleted Successfully from $1"
+        else
+          echo "Table does not exist."
+        fi
+        ;;
+        "Drop Table")
+            if [ -e "$1" ] && [ -e ".metadata_$1" ]
+            then
+              rm "$1" ".metadata_$1"
+              echo "$1 Table Dropped Successfully :)"
+            else
+              echo "Table does not exist."
+            fi
+            break
+        ;;
+      esac
+      done
 
-}
+    }
 
 displayTBOptions()
 {
