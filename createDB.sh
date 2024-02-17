@@ -3,7 +3,7 @@ shopt -s extglob
 
 tableHandling(){
   clear
-  select choice in Insert Update Delete "Drop Table"
+  select choice in Insert Update Show Delete "Drop Table"
   do
   case $choice in
     "Insert")
@@ -12,6 +12,21 @@ tableHandling(){
     "Update")
 
     ;;
+    "Show")
+  if [ -e "$1" ] && [ -e ".metadata_$1" ]
+  then
+  # Extract column names from metadata
+  column_names=$(cat .metadata_ha | awk -F: '{printf $1 " "}' && echo)
+
+  # Display column names on the same line
+  echo -n "$column_names" && echo
+
+  # Display data with corresponding column names
+  sed 's/:/ /g' "$1" && echo
+  else
+    echo "Table does not exist."
+  fi
+  ;;
     "Delete")
     read -p "Enter Row_ID to Delete: " rowID
     if [ -e "$1" ]&&[ -e ".metadata_$1" ]
