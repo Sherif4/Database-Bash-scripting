@@ -1,5 +1,3 @@
-# Hello Sherif
-
 #!/bin/bash
 shopt -s extglob
 
@@ -15,10 +13,24 @@ tableHandling(){
 
     ;;
     "Delete")
-
+    read -p "Enter Row_ID to Delete: " rowID
+    if [ -e "$1" ]&&[ -e ".metadata_$1" ]
+    then
+      sed -i "${rowID}d" "$1"
+      echo "Record $rowID Deleted Successfully from $1"
+    else
+      echo "Table does not exist."
+    fi
     ;;
     "Drop Table")
-
+        if [ -e "$1" ] && [ -e ".metadata_$1" ]
+        then
+          rm "$1" ".metadata_$1"
+          echo "$1 Table Dropped Successfully :)"
+        else
+          echo "Table does not exist."
+        fi
+        break
     ;;
   esac
   done
