@@ -57,3 +57,5 @@ Exiting the Script
 Conclusion
 
 This Bash script offers basic functionalities for managing a simple database via a command-line interface.
+
+Made by: Sherif Ashraf and Hassan Hosny
