@@ -209,10 +209,10 @@ tableHandling(){
 
 displayTBOptions()
 {
-  select option in CreateTB ListTB "Back to Main Menu"
+  select option in "Create Table" "List Tables" "Back to Main Menu"
   do
     case $option in
-    "CreateTB")
+    "Create Table")
     clear
       read -p "Please Enter Table Name: " TBName
       read -p "Please Enter Columns Number: " colNumber
@@ -267,7 +267,7 @@ displayTBOptions()
       read -p "Press Enter to continue..."
       ;;
 
-    "ListTB")
+    "List Tables")
     clear
   # List available tables
   tables=$(ls -p | grep -v /)
