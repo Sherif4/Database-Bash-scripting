@@ -15,6 +15,7 @@ tableHandling(){
         Col=$(cat .metadata_$1 | awk -F: "NR==(($i+1)){print \$1}")
         type=$(cat .metadata_$1 | awk -F: "NR==(($i+1)){print \$2}")
         pk=$(cat .metadata_$1 | awk -F: "NR==(($i+1)){print \$3}")
+        
         while true; do
         read -p "Please enter $Col: " data
         case $type in
@@ -143,14 +144,14 @@ tableHandling(){
         select selection in "*" $cols
         do
         rep=$(cat .metadata_$1 | awk -F: '{print $1}' | wc -l)
-        if [ $REPLY -eq 1  ];
+        if [ $REPLY -eq 1 ];
         then   
           # Extract column names from metadata
           echo
           column_names=$(cat .metadata_$1 | awk -F: '{printf $1 " | "}' && echo)
           # Display column names on the same line
           echo -n "$column_names" && echo
-          echo -------------------
+          echo ---------------------------
 
           # Display data with corresponding column names
           sed 's/:/ /g' "$1" && echo
@@ -159,7 +160,7 @@ tableHandling(){
           then
              echo
             cat .metadata_$1 | awk -F: "NR==(($REPLY - 1)){printf \$1}" && echo
-            echo ------------------
+            echo -------------------------
             cat $1 | awk -F: "{print \$(($REPLY - 1))}" && echo
             break
           else
@@ -174,13 +175,18 @@ tableHandling(){
       clear
       ;;
         "Delete")
-       if [ -e "$1" ]&&[ -e ".metadata_$1" ]
+        if [ -e "$1" ]&&[ -e ".metadata_$1" ]
         then
-         table=$(cat $1 | awk -F: '{print}')
+          records=$(cat $1 | awk -F: '{print}' | wc -l)
+          table=$(cat $1 | awk -F: '{print}')
         select rec in $table
         do
-          sed -i "${REPLY}d" "$1"
-          echo "Record $REPLY Deleted Successfully from $1"
+          if [ $REPLY -le $records ]; then
+            sed -i "${REPLY}d" "$1"
+            echo "Record $REPLY Deleted Successfully from $1"
+          else
+            echo "Invalid Record to Delete"
+          fi
           break
           done
         else
@@ -190,8 +196,20 @@ tableHandling(){
         "Drop Table")
             if [ -e "$1" ] && [ -e ".metadata_$1" ]
             then
-              rm "$1" ".metadata_$1"
-              echo "$1 Table Dropped Successfully :)"
+            echo "Are you sure you want to delete this table?!"
+              select confirm in Yes No
+              do
+              case $confirm in
+                "Yes") 
+                rm "$1" ".metadata_$1"
+                echo "$1 Table Dropped Successfully :)"
+                break
+                ;;
+                "No")
+                  break
+                ;;
+              esac
+              done
             else
               echo "Table does not exist."
             fi
@@ -214,8 +232,25 @@ displayTBOptions()
     case $option in
     "Create Table")
     clear
-      read -p "Please Enter Table Name: " TBName
-      read -p "Please Enter Columns Number: " colNumber
+    while true; 
+      do
+        read -p "Please Enter Table Name: " TBName
+        if ! valid_dbname "$TBName"; then
+          echo "Invalid table name. Table name must start with a letter and can only contain letters, numbers, and underscores."
+        else
+      break
+        fi
+      done
+  
+    while true; 
+      do
+        read -p "Please Enter Columns Number: " colNumber
+        if ! [[ "$colNumber" =~ ^[1-9]+$ ]]; then
+          echo "Invalid column number. Please enter a numeric value."
+        else
+        break
+          fi
+      done
       
       # Create a hidden file for metadata
       touch .metadata_$TBName
@@ -223,11 +258,21 @@ displayTBOptions()
       for ((i=0;i<$colNumber;i++))
       do
         line=""
+    while true;
+      do
         read -p "Enter Column Name: " ColName
         if [ -z $ColName ]
-        then
-        echo "please enter a valid number"
+          then
+          echo "please enter a valid name"
         else
+          if ! valid_dbname "$ColName"; 
+            then
+              echo "Invalid Column name"
+        else
+          break
+          fi
+        fi
+      done
         line+=$ColName
         select type in Integer String
       do
@@ -239,6 +284,9 @@ displayTBOptions()
               "Integer")
                 line+=:Int
                 break
+              ;;
+              *)
+                echo "Please Enter a valid Option"
               ;;
               esac
         
@@ -255,10 +303,12 @@ displayTBOptions()
             line+=:0
             break
             ;;
+          *)
+            echo "Please Enter a valid Option" 
+          ;;
         esac
       done
       echo $line >> .metadata_$TBName
-        fi
         done
       # Create an empty file for data
       touch $TBName
