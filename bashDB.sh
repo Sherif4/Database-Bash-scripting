@@ -23,7 +23,7 @@ tableHandling(){
             then
               if [ $pk -eq 1 ]
               then
-                if [ "$(cat $1 | awk -F: "/$data/{print \$(($i+1))}" | wc -l)" -eq 0 ]
+                if [ "$(cat $1 | awk -F: "/\<$data\>/{print \$(($i+1))}" | wc -l)" -eq 0 ]
                 then
                    line+=:$data
                    break
@@ -44,7 +44,7 @@ tableHandling(){
             then
               if [ $pk -eq 1 ]
               then
-                if [ "$(cat $1 | awk -v IGNORECASE=1 -F: "/$data/{print \$(($i+1))}" | wc -l)" -eq 0 ]
+                if [ "$(cat $1 | awk -v IGNORECASE=1 -F: "/\<$data\>/{print \$(($i+1))}" | wc -l)" -eq 0 ]
                 then
                    line+=:$data
                    break
@@ -436,8 +436,8 @@ do
       clear
       echo
       echo
-      #echo -e "\e[6;1mWe Hope that You have Enjoyed Our DBMS.\e[0m"
-      #echo -e "\e[6;1m             BYE BYE...! 😊            \e[0m"
+      echo -e "\e[6;1mWe Hope that You have Enjoyed Our DBMS.\e[0m"
+      echo -e "\e[6;1m             BYE BYE...! 😊            \e[0m"
       cowsay -f turtle -W 80 "We Hope that You have Enjoyed Our DBMS.
       BYE BYE...! 😊"
       echo
